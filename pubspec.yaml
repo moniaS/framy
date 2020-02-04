@@ -1,12 +1,13 @@
 name: framy
 description: Framy generates svg file that shows nesting hierarchy of the views in the app.
 version: 1.0.0
+homepage: https://github.com/moniaS/framy
 
 environment:
   sdk: '>=2.7.0 <3.0.0'
 
 dependencies:
-  # Required to use framy to take screenshots.
+  image: ^2.1.4
   flutter_driver:
     sdk: flutter
 
