@@ -1,6 +1,6 @@
 name: framy
 description: Framy generates svg file that shows nesting hierarchy of the views in the app.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/moniaS/framy
 
 environment:
