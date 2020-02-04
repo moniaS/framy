@@ -1,6 +1,6 @@
-class FrameName {
+class Frame {
   final String node;
   final String name;
 
-  FrameName(this.node, this.name);
+  Frame(this.node, this.name);
 }

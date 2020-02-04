@@ -37,8 +37,9 @@ class SvgImage extends SvgElement {
   final String path;
   final double x;
   final double y;
+  final double width;
 
-  SvgImage(this.path, this.x, this.y);
+  SvgImage(this.path, this.x, this.y, this.width);
 
   @override
   String toString() {
@@ -51,7 +52,7 @@ class SvgImage extends SvgElement {
       base64Image = '';
     }
 
-    return '<image href="data:image/png;base64,$base64Image" x="$x" y="$y"/>';
+    return '<image width="$width" href="data:image/png;base64,$base64Image" x="$x" y="$y"/>';
   }
 
   @override

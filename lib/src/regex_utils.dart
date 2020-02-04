@@ -1,16 +1,15 @@
 import 'package:framy/src/model/file_name.dart';
 
-List<FrameName> getSortedFrameChildren(
-    List<FrameName> fileNames, FrameName parentName) {
+List<Frame> getSortedFrameChildren(List<Frame> fileNames, Frame parentName) {
   final pattern = r'^' + parentName.node + r'\.[0-9]+$';
   final regex = RegExp(pattern);
-  List<FrameName> children =
+  List<Frame> children =
       fileNames.where((p) => regex.hasMatch(p.node)).toList();
   _sortChildren(children);
   return children;
 }
 
-void _sortChildren(List<FrameName> children) {
+void _sortChildren(List<Frame> children) {
   children.sort((a, b) {
     int lastDotIndex = a.node.lastIndexOf(('.'));
     int lastChildNumberA =

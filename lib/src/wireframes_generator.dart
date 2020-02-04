@@ -8,36 +8,40 @@ import 'package:framy/src/model/svg_document.dart';
 import 'package:framy/src/model/svg_element.dart';
 import 'package:framy/src/regex_utils.dart';
 
+/// [WireFramesGenerator] is the class responsible for building wireframes
+/// structure and saving it in svg file
 class WireFramesGenerator {
-  final FrameName _firstFrameName;
+  final Frame initialFrame;
   final String directoryPath;
-  final String firstFrameName;
   final DocumentHelper documentHelper;
-  double imageWidth;
+  final double imageWidth;
 
   WireFramesGenerator(
     this.directoryPath,
-    this.firstFrameName, {
+    String initialFrameName, {
     this.documentHelper = const DocumentHelper(),
     double imageWidth,
   })  : this.imageWidth = imageWidth ??
             ImageHelper().calculateImageWidth(
-              File('$directoryPath/$firstFrameName'),
+              File('$directoryPath/$initialFrameName.png'),
               Position.imageHeight,
             ),
-        this._firstFrameName = FrameName(
-            firstFrameName.split('-')[0], firstFrameName.split('-')[1]);
+        this.initialFrame = Frame(
+            initialFrameName.split('-')[0], initialFrameName.split('-')[1]);
 
+  /// Generates svg file containing application structure based on images from given directory.
+  /// Starts drawing from initialFrameName file.
   void generateWireFrames() async {
-    List<FrameName> fileNames = documentHelper.prepareFrameNames(directoryPath);
+    List<Frame> fileNames = documentHelper.prepareFrameNames(directoryPath);
     List<int> depthsList =
         fileNames.map((name) => '.'.allMatches(name.node).length).toList();
     int maxDepth = depthsList.reduce(max) + 1;
     final svgDocument = SvgDocument();
-    int verticalGrowth = generateSvgDocument(
-      _firstFrameName,
+    int verticalGrowth = _drawNode(
+      initialFrame,
       fileNames,
       0,
+      imageWidth,
       svgDocument,
     );
     await documentHelper.saveSvg(
@@ -49,50 +53,53 @@ class WireFramesGenerator {
     );
   }
 
-  int generateSvgDocument(
-    FrameName parentFileName,
-    List<FrameName> fileNames,
+  /// Recursively generates wireframes structure.
+  /// For every parent node draws every direct child node and connecting lines.
+  int _drawNode(
+    Frame parentFileName,
+    List<Frame> fileNames,
     int verticalDepth,
+    double imageWidth,
     SvgDocument document,
   ) {
     //get horizontal depth of wireframe in this node
-    final int horizontalDepth = getHorizontalDepth(parentFileName.node);
+    final int horizontalDepth = _getHorizontalDepth(parentFileName.node);
     //create position object
     final Position position =
         Position(horizontalDepth, verticalDepth, imageWidth);
     //add image and name to the document
-    addImageWithName(document, parentFileName, position);
+    _addImageWithName(document, parentFileName, position, imageWidth);
     //get sorted all the frames directly connected to this node
-    List<FrameName> children =
-        getSortedFrameChildren(fileNames, parentFileName);
+    List<Frame> children = getSortedFrameChildren(fileNames, parentFileName);
     int verticalGrowth = 0;
     //repeat for every direct child
-    for (FrameName child in children) {
+    for (Frame child in children) {
       //set starting position for vertical line
       position.setLineStartingPositionY(verticalGrowth);
       //draw horizontal line
-      addHorizontalLine(children.first == child, position, document);
+      _addHorizontalLine(children.first == child, position, document);
       // call function for every child recursively
-      verticalGrowth += generateSvgDocument(
-          child, fileNames, verticalDepth + verticalGrowth, document);
+      verticalGrowth += _drawNode(child, fileNames,
+          verticalDepth + verticalGrowth, imageWidth, document);
       verticalGrowth += 1;
     }
     // when there are more than one child then add vertical line, which connects all children
-    addVerticalLine(children.length, position, document);
+    _addVerticalLine(children.length, position, document);
     if (children.isNotEmpty) {
       verticalGrowth--;
     }
     return verticalGrowth;
   }
 
-  void addHorizontalLine(
+  /// Adds horizontal line to connect vertical line with every direct children
+  void _addHorizontalLine(
     bool isFirstChild,
     Position position,
     SvgDocument document,
   ) {
     // for first child add first half of horizontal line
     if (isFirstChild) {
-      addConnectingLineForFirstChild(
+      _addConnectingLineForFirstChild(
         position,
         document,
       );
@@ -105,20 +112,23 @@ class WireFramesGenerator {
         position.lineStartingPositionY));
   }
 
-  int getHorizontalDepth(String parentNode) {
+  int _getHorizontalDepth(String parentNode) {
     return '.'.allMatches(parentNode).length;
   }
 
-  void addImageWithName(
+  /// Adds image with name to the svg document
+  void _addImageWithName(
     SvgDocument document,
-    FrameName parentFileName,
+    Frame parentFileName,
     Position position,
+    double imageWidth,
   ) {
     //add SvgImage to the SvgDocument
     document.addElement(SvgImage(
       '$directoryPath/${parentFileName.node}-${parentFileName.name}.png',
       position.imagePositionX,
       position.imagePositionY,
+      imageWidth,
     ));
 
     //add SvgName to the SvgDocument
@@ -131,7 +141,9 @@ class WireFramesGenerator {
     );
   }
 
-  void addConnectingLineForFirstChild(Position position, SvgDocument document) {
+  /// Adds horizontal starting line for first child to the svg document
+  void _addConnectingLineForFirstChild(
+      Position position, SvgDocument document) {
     document.addElement(
       SvgLine(
         position.lineStartingPositionX,
@@ -142,7 +154,8 @@ class WireFramesGenerator {
     );
   }
 
-  void addVerticalLine(
+  /// Adds vertical line to connect all children lines to the svg document
+  void _addVerticalLine(
     int childrenLength,
     Position position,
     SvgDocument document,

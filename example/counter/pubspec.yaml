@@ -1,0 +1,21 @@
+name: counter
+description: Framy example app
+version: 1.0.0
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.2
+  framy:
+    path: ../../
+
+dev_dependencies:
+  test: 1.9.4
+  flutter_driver:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

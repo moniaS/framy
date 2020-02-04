@@ -5,9 +5,12 @@ import 'package:framy/src/model/svg_document.dart';
 
 class DocumentHelper {
   final String svgFileName;
+
   const DocumentHelper({this.svgFileName = 'framy.svg'});
 
-  List<FrameName> prepareFrameNames(String directoryPath) {
+  /// Iterates through source directory and converts every file from string
+  /// 'directory_path/1.1-homepage.png' to object FrameName('1.1', 'homepage')
+  List<Frame> prepareFrameNames(String directoryPath) {
     List<String> fileNames = [];
     Directory directory = Directory(directoryPath);
     List<FileSystemEntity> files = directory.listSync();
@@ -17,15 +20,19 @@ class DocumentHelper {
     }
 
     fileNames = fileNames.map((p) => p.replaceAll('.png', '')).toList();
-    List<FrameName> fileNamesObjects = fileNames.map<FrameName>((name) {
+    List<Frame> fileNamesObjects = fileNames.map<Frame>((name) {
       List<String> nameParts = name.split('-');
-      return FrameName(nameParts[0], nameParts[1]);
+      return Frame(nameParts[0], nameParts[1]);
     }).toList();
     return fileNamesObjects;
   }
 
+  ///Saves given SvgDocument with passed width and height to valid svg file
   Future<void> saveSvg(
-      SvgDocument document, double width, double height) async {
+    SvgDocument document,
+    double width,
+    double height,
+  ) async {
     String svgContent = document.toSvgPath(width, height);
     return File(svgFileName).writeAsString(svgContent);
   }
